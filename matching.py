@@ -224,7 +224,7 @@ def run_ip_matching(
         print(f"Processing: {source_file_ip}")
 
         df_source_ip = pd.read_excel(source_file_ip, sheet_name=input_tab_source_ip, engine="openpyxl")
-        df_target_ip = pd.read_excel(input_file_target, sheet_name=target_sheet_name, engine="openpyxl")
+        df_target_ip = pd.read_excel(input_file_target, sheet_name=target_sheet_name, engine="openpyxl", header=None)
 
         source_match_col_ip = df_source_ip.iloc[:, 1].fillna("").astype(str).str.strip()
         source_match_col_ip = source_match_col_ip.str.replace(r"\bCARR\b", "ARR", regex=True)
