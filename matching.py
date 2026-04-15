@@ -79,29 +79,6 @@ def build_source_data(source_match_col, source_return_col):
     return source_data
 
 
-def get_target_match_column(df_target, start_row, end_row):
-    if df_target.shape[1] <= 3:
-        raise ValueError(
-            f"Target sheet has only {df_target.shape[1]} columns after reading, but column D is required."
-        )
-
-    start_idx = start_row - 2
-    end_idx = end_row - 1
-
-    if start_idx >= len(df_target):
-        raise ValueError(
-            f"Target sheet has only {len(df_target)} rows after reading, but start row {start_row} was requested."
-        )
-
-    return (
-        df_target.iloc[start_idx:end_idx, 3]
-        .fillna("")
-        .astype(str)
-        .str.strip()
-        .reset_index(drop=True)
-    )
-
-
 def compute_matches(source_data, target_match_col, model, threshold):
     source_embeddings = model.encode(
         source_data["match_text"].tolist(),
@@ -162,6 +139,17 @@ def read_excel_grid(path, sheet_name):
     )
 
 
+def get_target_match_column_from_ws(ws, start_row, end_row):
+    values = []
+    for row in range(start_row, end_row + 1):
+        cell_value = ws.cell(row=row, column=4).value  # Column D
+        if cell_value is None:
+            values.append("")
+        else:
+            values.append(str(cell_value).strip())
+    return pd.Series(values)
+
+
 def run_im_matching(
     input_file_source_im,
     input_file_target,
@@ -176,13 +164,11 @@ def run_im_matching(
 
     wb = load_workbook(input_file_target, keep_vba=True)
     template_ws = get_template_sheet(wb, input_tab_target)
-    target_sheet_name = template_ws.title
 
     for source_file_im in input_file_source_im:
         print(f"Processing: {source_file_im}")
 
         df_source_im = read_excel_grid(source_file_im, input_tab_source_im)
-        df_target = read_excel_grid(input_file_target, target_sheet_name)
 
         source_match_col_im = df_source_im.iloc[:, 1].fillna("").astype(str).str.strip()
         source_return_col_im = df_source_im.iloc[:, 2]
@@ -192,7 +178,7 @@ def run_im_matching(
         start_row = 14
         end_row = 49
 
-        target_match_col_im = get_target_match_column(df_target, start_row, end_row)
+        target_match_col_im = get_target_match_column_from_ws(template_ws, start_row, end_row)
         source_data_im = build_source_data(source_match_col_im, source_return_col_im)
 
         matched_return_values_im, matched_scores_im = compute_matches(
@@ -233,13 +219,11 @@ def run_ip_matching(
 
     wb = load_workbook(input_file_target, keep_vba=True)
     template_ws = get_template_sheet(wb, input_tab_target)
-    target_sheet_name = template_ws.title
 
     for source_file_ip in input_file_source_ip:
         print(f"Processing: {source_file_ip}")
 
         df_source_ip = read_excel_grid(source_file_ip, input_tab_source_ip)
-        df_target_ip = read_excel_grid(input_file_target, target_sheet_name)
 
         source_match_col_ip = df_source_ip.iloc[:, 1].fillna("").astype(str).str.strip()
         source_match_col_ip = source_match_col_ip.str.replace(r"\bCARR\b", "ARR", regex=True)
@@ -250,7 +234,7 @@ def run_ip_matching(
         start_row = 55
         end_row = 106
 
-        target_match_col_ip = get_target_match_column(df_target_ip, start_row, end_row)
+        target_match_col_ip = get_target_match_column_from_ws(template_ws, start_row, end_row)
         source_data_ip = build_source_data(source_match_col_ip, source_return_col_ip)
 
         matched_return_values_ip, matched_scores_ip = compute_matches(
