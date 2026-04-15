@@ -164,7 +164,7 @@ def run_im_matching(
     for source_file_im in input_file_source_im:
         print(f"Processing: {source_file_im}")
 
-        df_source_im = pd.read_excel(source_file_im, sheet_name=input_tab_source_im, engine="openpyxl")
+        df_source_im = pd.read_excel(source_file_im, sheet_name=input_tab_source_im, engine="openpyxl", header=None)
         df_target = pd.read_excel(input_file_target, sheet_name=target_sheet_name, engine="openpyxl", header=None)
 
         source_match_col_im = df_source_im.iloc[:, 1].fillna("").astype(str).str.strip()
