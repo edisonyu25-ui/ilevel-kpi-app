@@ -4,7 +4,7 @@ import streamlit as st
 
 from matching import run_im_matching, run_ip_matching
 
-st.set_page_config(page_title="iLevel KPI Alignment Tool", layout="wide")
+st.set_page_config(page_title="iLevel KPI Alignment Platform", layout="wide")
 
 st.title("iLevel KPI Matching Tool")
 
