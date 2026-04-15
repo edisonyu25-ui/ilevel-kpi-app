@@ -15,11 +15,9 @@ def convert_to_number(value, label=None):
     text = raw_text.replace(",", "").strip().upper()
     label_text = "" if label is None else str(label).upper()
 
-    # Handle numeric % from Excel, based on label
     if isinstance(value, (int, float)) and "%" in label_text:
         return f"{value * 100:.2f}%"
 
-    # Handle % already in text
     if "%" in text:
         try:
             number = float(text.replace("%", ""))
@@ -27,7 +25,6 @@ def convert_to_number(value, label=None):
         except Exception:
             return raw_text
 
-    # Handle K/M/B
     match = re.match(r"^(\d+\.?\d*)([KMB]?)$", text)
     if not match:
         return raw_text
@@ -63,7 +60,7 @@ def copy_conditional_formatting(template_ws, ws):
 def extract_company_value(source_match_col, source_return_col):
     company_value = None
     for i, label in enumerate(source_match_col):
-        if label.strip().upper() in ["TARGET COMPANY", "COMPANY", "COMPANY NAME"]:
+        if str(label).strip().upper() in ["TARGET COMPANY", "COMPANY", "COMPANY NAME"]:
             company_value = source_return_col.iloc[i]
             break
     return company_value
@@ -83,8 +80,19 @@ def build_source_data(source_match_col, source_return_col):
 
 
 def get_target_match_column(df_target, start_row, end_row):
+    if df_target.shape[1] <= 3:
+        raise ValueError(
+            f"Target sheet has only {df_target.shape[1]} columns after reading, but column D is required."
+        )
+
     start_idx = start_row - 2
     end_idx = end_row - 1
+
+    if start_idx >= len(df_target):
+        raise ValueError(
+            f"Target sheet has only {len(df_target)} rows after reading, but start row {start_row} was requested."
+        )
+
     return (
         df_target.iloc[start_idx:end_idx, 3]
         .fillna("")
@@ -145,6 +153,15 @@ def get_template_sheet(wb, preferred_name=None):
     raise ValueError("Target workbook has no worksheets.")
 
 
+def read_excel_grid(path, sheet_name):
+    return pd.read_excel(
+        path,
+        sheet_name=sheet_name,
+        engine="openpyxl",
+        header=None
+    )
+
+
 def run_im_matching(
     input_file_source_im,
     input_file_target,
@@ -164,15 +181,14 @@ def run_im_matching(
     for source_file_im in input_file_source_im:
         print(f"Processing: {source_file_im}")
 
-        df_source_im = pd.read_excel(source_file_im, sheet_name=input_tab_source_im, engine="openpyxl", header=None)
-        df_target = pd.read_excel(input_file_target, sheet_name=target_sheet_name, engine="openpyxl", header=None)
+        df_source_im = read_excel_grid(source_file_im, input_tab_source_im)
+        df_target = read_excel_grid(input_file_target, target_sheet_name)
 
         source_match_col_im = df_source_im.iloc[:, 1].fillna("").astype(str).str.strip()
         source_return_col_im = df_source_im.iloc[:, 2]
 
         company_value = extract_company_value(source_match_col_im, source_return_col_im)
 
-        # Preserve current coded behavior
         start_row = 14
         end_row = 49
 
@@ -188,10 +204,10 @@ def run_im_matching(
         ws.title = clean_sheet_name(source_file_im)
 
         if company_value is not None:
-            ws.cell(row=3, column=2).value = company_value  # B3
+            ws.cell(row=3, column=2).value = company_value
 
-        ws.cell(row=13, column=8).value = "Matched Value"      # H13
-        ws.cell(row=13, column=9).value = "Similarity Score"   # I13
+        ws.cell(row=13, column=8).value = "Matched Value"
+        ws.cell(row=13, column=9).value = "Similarity Score"
 
         for i in range(min(len(matched_return_values_im), end_row - start_row + 1)):
             excel_row = start_row + i
@@ -200,7 +216,6 @@ def run_im_matching(
 
     output_file = os.path.join(output_path, "Combined_IM_Output.xlsm")
     wb.save(output_file)
-    print(f"Done. Output saved as: {output_file}")
     return output_file
 
 
@@ -223,8 +238,8 @@ def run_ip_matching(
     for source_file_ip in input_file_source_ip:
         print(f"Processing: {source_file_ip}")
 
-        df_source_ip = pd.read_excel(source_file_ip, sheet_name=input_tab_source_ip, engine="openpyxl", header=None)
-        df_target_ip = pd.read_excel(input_file_target, sheet_name=target_sheet_name, engine="openpyxl", header=None)
+        df_source_ip = read_excel_grid(source_file_ip, input_tab_source_ip)
+        df_target_ip = read_excel_grid(input_file_target, target_sheet_name)
 
         source_match_col_ip = df_source_ip.iloc[:, 1].fillna("").astype(str).str.strip()
         source_match_col_ip = source_match_col_ip.str.replace(r"\bCARR\b", "ARR", regex=True)
@@ -232,7 +247,6 @@ def run_ip_matching(
 
         company_value_ip = extract_company_value(source_match_col_ip, source_return_col_ip)
 
-        # Preserve current coded behavior
         start_row = 55
         end_row = 106
 
@@ -248,10 +262,10 @@ def run_ip_matching(
         ws.title = clean_sheet_name(source_file_ip)
 
         if company_value_ip is not None:
-            ws.cell(row=3, column=2).value = company_value_ip  # B3
+            ws.cell(row=3, column=2).value = company_value_ip
 
-        ws.cell(row=54, column=8).value = "Matched Value"      # H54
-        ws.cell(row=54, column=9).value = "Similarity Score"   # I54
+        ws.cell(row=54, column=8).value = "Matched Value"
+        ws.cell(row=54, column=9).value = "Similarity Score"
 
         for i in range(min(len(matched_return_values_ip), end_row - start_row + 1)):
             excel_row = start_row + i
@@ -260,5 +274,4 @@ def run_ip_matching(
 
     output_file = os.path.join(output_path, "Combined_IP_Output.xlsm")
     wb.save(output_file)
-    print(f"Done. Output saved as: {output_file}")
     return output_file
