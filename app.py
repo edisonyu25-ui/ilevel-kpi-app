@@ -6,7 +6,7 @@ from matching import run_im_matching, run_ip_matching
 
 st.set_page_config(page_title="iLevel KPI Alignment Platform", layout="wide")
 
-st.title("iLevel KPI Matching Tool")
+st.title("iLevel KPI Alignment Platform")
 
 tab_im, tab_ip = st.tabs(["IM", "IP"])
 
