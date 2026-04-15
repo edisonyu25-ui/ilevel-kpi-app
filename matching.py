@@ -129,6 +129,22 @@ def compute_matches(source_data, target_match_col, model, threshold):
     return matched_return_values, matched_scores
 
 
+def get_template_sheet(wb, preferred_name=None):
+    if preferred_name and preferred_name in wb.sheetnames:
+        return wb[preferred_name]
+
+    if preferred_name:
+        wanted = preferred_name.strip().lower()
+        for name in wb.sheetnames:
+            if name.strip().lower() == wanted:
+                return wb[name]
+
+    if wb.worksheets:
+        return wb.worksheets[0]
+
+    raise ValueError("Target workbook has no worksheets.")
+
+
 def run_im_matching(
     input_file_source_im,
     input_file_target,
@@ -142,20 +158,21 @@ def run_im_matching(
     model = SentenceTransformer(model_name)
 
     wb = load_workbook(input_file_target, keep_vba=True)
-    template_ws = wb[input_tab_target]
+    template_ws = get_template_sheet(wb, input_tab_target)
+    target_sheet_name = template_ws.title
 
     for source_file_im in input_file_source_im:
         print(f"Processing: {source_file_im}")
 
         df_source_im = pd.read_excel(source_file_im, sheet_name=input_tab_source_im, engine="openpyxl")
-        df_target = pd.read_excel(input_file_target, sheet_name=input_tab_target, engine="openpyxl")
+        df_target = pd.read_excel(input_file_target, sheet_name=target_sheet_name, engine="openpyxl")
 
         source_match_col_im = df_source_im.iloc[:, 1].fillna("").astype(str).str.strip()
         source_return_col_im = df_source_im.iloc[:, 2]
 
         company_value = extract_company_value(source_match_col_im, source_return_col_im)
 
-        # Preserve current coded behavior exactly
+        # Preserve current coded behavior
         start_row = 14
         end_row = 49
 
@@ -200,13 +217,14 @@ def run_ip_matching(
     model = SentenceTransformer(model_name)
 
     wb = load_workbook(input_file_target, keep_vba=True)
-    template_ws = wb[input_tab_target]
+    template_ws = get_template_sheet(wb, input_tab_target)
+    target_sheet_name = template_ws.title
 
     for source_file_ip in input_file_source_ip:
         print(f"Processing: {source_file_ip}")
 
         df_source_ip = pd.read_excel(source_file_ip, sheet_name=input_tab_source_ip, engine="openpyxl")
-        df_target_ip = pd.read_excel(input_file_target, sheet_name=input_tab_target, engine="openpyxl")
+        df_target_ip = pd.read_excel(input_file_target, sheet_name=target_sheet_name, engine="openpyxl")
 
         source_match_col_ip = df_source_ip.iloc[:, 1].fillna("").astype(str).str.strip()
         source_match_col_ip = source_match_col_ip.str.replace(r"\bCARR\b", "ARR", regex=True)
@@ -214,7 +232,7 @@ def run_ip_matching(
 
         company_value_ip = extract_company_value(source_match_col_ip, source_return_col_ip)
 
-        # Preserve current coded behavior exactly
+        # Preserve current coded behavior
         start_row = 55
         end_row = 106
 
