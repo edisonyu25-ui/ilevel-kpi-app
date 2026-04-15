@@ -8,7 +8,7 @@ st.set_page_config(page_title="iLevel KPI Alignment Platform", layout="wide")
 
 st.title("iLevel KPI Alignment Platform")
 
-tab_im, tab_ip = st.tabs(["IM", "IP"])
+tab_im, tab_ip = st.tabs(["Investment Memo", "Investment Proposal"])
 
 def save_uploaded_file(uploaded_file, folder):
     path = os.path.join(folder, uploaded_file.name)
