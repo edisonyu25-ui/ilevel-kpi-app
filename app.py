@@ -52,7 +52,7 @@ with tab_im:
                 output_dir = os.path.join(tmpdir, "output")
                 os.makedirs(output_dir, exist_ok=True)
 
-                with st.spinner("Thinking and processing IM files..."):
+                with st.spinner("Thinking, processing, and validating IM files..."):
                     output_file = run_im_matching(
                         input_file_source_im=im_source_paths,
                         input_file_target=im_target_path,
@@ -104,7 +104,7 @@ with tab_ip:
                 output_dir = os.path.join(tmpdir, "output")
                 os.makedirs(output_dir, exist_ok=True)
 
-                with st.spinner("Thinking and processing IP files..."):
+                with st.spinner("Thinking, processing, and validating IP files..."):
                     output_file = run_ip_matching(
                         input_file_source_ip=ip_source_paths,
                         input_file_target=ip_target_path,
