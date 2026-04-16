@@ -34,8 +34,8 @@ with tab_im:
     )
 
     im_threshold = st.slider(
-        "Similarity threshold",
-        0.0, 1.0, 0.60, 0.30, 0.80,
+        "Similarity Threshold",
+        0.0, 1.0, 0.60, 0.10,
         key="im_threshold"
     )
 
@@ -86,8 +86,8 @@ with tab_ip:
     )
 
     ip_threshold = st.slider(
-        "Similarity threshold",
-        0.0, 1.0, 0.60, 0.30, 0.80,
+        "Similarity Threshold",
+        0.0, 1.0, 0.60, 0.10,
         key="ip_threshold"
     )
 
