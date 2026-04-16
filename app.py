@@ -35,7 +35,7 @@ with tab_im:
 
     im_threshold = st.slider(
         "Similarity threshold",
-        0.0, 1.0, 0.60, 0.05,
+        0.0, 1.0, 0.60, 0.30, 0.80,
         key="im_threshold"
     )
 
@@ -52,7 +52,7 @@ with tab_im:
                 output_dir = os.path.join(tmpdir, "output")
                 os.makedirs(output_dir, exist_ok=True)
 
-                with st.spinner("Processing IM files..."):
+                with st.spinner("Thinking and processing IM files..."):
                     output_file = run_im_matching(
                         input_file_source_im=im_source_paths,
                         input_file_target=im_target_path,
@@ -87,7 +87,7 @@ with tab_ip:
 
     ip_threshold = st.slider(
         "Similarity threshold",
-        0.0, 1.0, 0.60, 0.05,
+        0.0, 1.0, 0.60, 0.30, 0.80,
         key="ip_threshold"
     )
 
@@ -104,7 +104,7 @@ with tab_ip:
                 output_dir = os.path.join(tmpdir, "output")
                 os.makedirs(output_dir, exist_ok=True)
 
-                with st.spinner("Processing IP files..."):
+                with st.spinner("Thinking and processing IP files..."):
                     output_file = run_ip_matching(
                         input_file_source_ip=ip_source_paths,
                         input_file_target=ip_target_path,
