@@ -44,7 +44,7 @@ def convert_to_number(value, label=None):
 
 def clean_sheet_name(file_path):
     name = os.path.splitext(os.path.basename(file_path))[0]
-    for ch in ['\\', '/', '*', '?', ':', '[', ']']:
+    for ch in ["\\", "/", "*", "?", ":", "[", "]"]:
         name = name.replace(ch, "_")
     return name[:31]
 
@@ -80,6 +80,27 @@ def extract_company_value(source_match_col, source_return_col):
             company_value = source_return_col.iloc[i]
             break
     return company_value
+
+
+def extract_text_before_punctuation(value):
+    if value is None:
+        return None
+
+    text = str(value).strip()
+    if not text:
+        return None
+
+    parts = re.split(r"[^\w\s]", text, maxsplit=1)
+    return parts[0].strip() if parts else text
+
+
+def fill_company_name_cells(ws, company_value):
+    if company_value is not None:
+        full_company_name = str(company_value).strip()
+        short_company_name = extract_text_before_punctuation(full_company_name)
+
+        ws.cell(row=3, column=5).value = full_company_name   # E3
+        ws.cell(row=3, column=2).value = short_company_name  # B3
 
 
 def build_source_data(source_match_col, source_return_col):
@@ -216,8 +237,8 @@ def run_im_matching(
 
         company_value = extract_company_value(source_match_col_im, source_return_col_im)
 
-        start_row = 14
-        end_row = 49
+        start_row = 15
+        end_row = 50
 
         target_match_col_im = get_target_match_column_from_ws(template_ws, start_row, end_row)
         source_data_im = build_source_data(source_match_col_im, source_return_col_im)
@@ -235,11 +256,10 @@ def run_im_matching(
         copy_conditional_formatting(template_ws, ws)
         ws.title = clean_sheet_name(source_file_im)
 
-        if company_value is not None:
-            ws.cell(row=3, column=2).value = company_value
+        fill_company_name_cells(ws, company_value)
 
-        ws.cell(row=13, column=8).value = "Matched Value"
-        ws.cell(row=13, column=9).value = "Similarity Score"
+        ws.cell(row=14, column=8).value = "Matched Value"
+        ws.cell(row=14, column=9).value = "Similarity Score"
 
         for i in range(min(len(matched_return_values_im), end_row - start_row + 1)):
             excel_row = start_row + i
@@ -277,8 +297,8 @@ def run_ip_matching(
 
         company_value_ip = extract_company_value(source_match_col_ip, source_return_col_ip)
 
-        start_row = 55
-        end_row = 106
+        start_row = 56
+        end_row = 107
 
         target_match_col_ip = get_target_match_column_from_ws(template_ws, start_row, end_row)
         source_data_ip = build_source_data(source_match_col_ip, source_return_col_ip)
@@ -296,11 +316,10 @@ def run_ip_matching(
         copy_conditional_formatting(template_ws, ws)
         ws.title = clean_sheet_name(source_file_ip)
 
-        if company_value_ip is not None:
-            ws.cell(row=3, column=2).value = company_value_ip
+        fill_company_name_cells(ws, company_value_ip)
 
-        ws.cell(row=54, column=8).value = "Matched Value"
-        ws.cell(row=54, column=9).value = "Similarity Score"
+        ws.cell(row=55, column=8).value = "Matched Value"
+        ws.cell(row=55, column=9).value = "Similarity Score"
 
         for i in range(min(len(matched_return_values_ip), end_row - start_row + 1)):
             excel_row = start_row + i
